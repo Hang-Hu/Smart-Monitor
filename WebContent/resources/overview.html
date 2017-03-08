@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WATCHER - OVERVIEW</title>
+    <link href="http://cdn.bootcss.com/semantic-ui/2.2.6/semantic.min.css" rel="stylesheet">
+</head>
+<body style="overflow:hidden;">
+    <div class="ui container">
+
+        <h4 class="ui horizontal divider header" style="text-transform: none; margin-top: 1.5rem; margin-bottom: 1.5rem;"> <span> <i class="large clock icon"></i>  <span id="js-now" >  </span></span>「 0.5 s 」 </h4>
+
+        <div class="ui form">
+            <div class="fields">
+                <div class="twelve wide field"></div>
+                <div class="four wide field">
+                    <select class="ui selection dropdown js-group-list" id="js-group-list">
+                        <option value="">选择设备组</option>
+                        <option value="-1" selected>全部</option>
+                        <option value="1">第一设备组</option>
+                        <option value="2">第二设备组</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <table class="ui center aligned blue table celled" id="js-container">
+            <thead>
+                <tr>
+                    <th width="10%">序号</th>
+                    <th width="15%">组号</th>
+                    <th width="15%">组名</th>
+                    <th width="15%">设备号</th>
+                    <th width="20%">设备名称</th>
+                    <th width="10%">当前状态</th>
+                    <th width="15%">错误信息</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>000000</td>
+                    <td>第一设备组</td>
+                    <td>20160001112</td>
+                    <td>邮件服务器</td>
+                    <td><i class="green checkmark icon"></i></td>
+                    <td>设备正常</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>000000</td>
+                    <td>第一设备组</td>
+                    <td>20160001112</td>
+                    <td>消息队列服务器</td>
+                    <td><i class="red close icon"></i></td>
+                    <td>连接失败</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>000000</td>
+                    <td>第一设备组</td>
+                    <td>20160001112</td>
+                    <td>消息队列服务器</td>
+                    <td><div class="ui active mini inline loader"></div></td>
+                    <td>连接失败</td>
+                </tr>
+            </tbody>
+        </table>
+        <a href="error_history.html" class="ui basic blue button right floated"><i class="icon zoom"></i>查看详情</a>
+        <a href="params_edit.html" class="ui basic blue button right floated"><i class="icon zoom"></i>编辑设备信息</a>
+    </div>
+
+    <table id="js-template" style="display: none;">
+        <tr>
+            <td class="js-number">1</td>
+            <td class="js-group-id">000000</td>
+            <td class="js-group-name">第一设备组</td>
+            <td class="js-device-id">20160001112</td>
+            <td class="js-device-name">邮件服务器</td>
+            <td class="js-status"><i class="green checkmark icon"></i></td>
+            <td class="js-error-msg">设备正常</td>
+        </tr>
+    </table>
+
+    <!--<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>-->
+    <script src="jquery-3.1.0.min.js"></script>
+    <script src="http://cdn.bootcss.com/semantic-ui/2.2.6/semantic.min.js"></script>
+    <script src="api_ajax.js"></script>
+    <script>
+        $(function(){
+            $('.dropdown').dropdown();
+            
+            $.get({
+                url : API_GET_GROUP_LIST,
+                success : function(response){
+                    // TODO: 显示列表
+                    refreshGroupList(response);
+                }
+            });
+
+            getResponse();
+            $('.js-group-list').change(function(){
+                getResponse();
+            });
+
+
+            function getResponse() {
+                var groupId = $('.js-group-list').dropdown('get value');
+                var data = null;
+                if(groupId != -1){
+                    data  = {
+                        group_id: groupId,
+                    };
+                }
+                $.get({
+                    url : API_GET_REAL_STATUS,
+                    data : data,
+                    success : function(response){
+                        console.log(response);
+                        // TODO: 显示设备当前情况
+                        refreshItems(response);
+                    }
+                });
+            }
+            window.setInterval(getResponse, REFRESH_FREQUENCE);
+
+            // TODO: refresh real-time status list according to data received from java web server
+            function refreshItems(data) {
+                const NORMAL_STATUS = '<i class="green checkmark icon"></i>';
+                const ERROR_STATUS = '<i class="red close icon"></i>';
+                const LOST_CONNECTION = '<div class="ui active mini inline loader"></div>';
+
+                // TODO: 清空表格内容
+                var $container = $('#js-container');
+                $container.find('tbody').children('tr').remove();
+
+                var number = 1;
+
+                for(var index in data){
+                    var $item = $('#js-template').find('tr').clone();
+                    $item.find('.js-number').text(number);
+                    $item.find('.js-group-id').text(data[index]['group_id']);
+                    $item.find('.js-group-name').text(data[index]['group_name']);
+                    $item.find('.js-device-id').text(data[index]['device_id']);
+                    $item.find('.js-device-name').text(data[index]['device_name']);
+                    switch (data[index]['status']){
+                        case -1 : $item.find('.js-status').html(LOST_CONNECTION); break;
+                        case 2 : $item.find('.js-status').html(ERROR_STATUS); break;
+                        default : $item.find('.js-status').html(NORMAL_STATUS); break;
+                    }
+
+                    if(data[index]['status'] === -1){
+                        $item.find('.js-error-msg').text('失去连接');
+                    }else{
+                        $item.find('.js-error-msg').text(data[index]['error_msg']);
+                    }
+                    $('#js-container').append($item);
+                    number++;
+                }
+            }
+        })
+    </script>
+</body>
+</html>

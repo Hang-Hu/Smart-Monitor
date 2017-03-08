@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WATCHER - ERROR - HISTORY</title>
+    <link href="http://cdn.bootcss.com/semantic-ui/2.2.6/semantic.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="ui container" >
+
+    <h4 class="ui horizontal divider header" style="text-transform: none; margin-top: 1.5rem; margin-bottom: 1.5rem;">  <i class="icon history"></i> 错误历史记录 </h4>
+
+    <div class="ui form" style="z-index: 999">
+        <div class="five fields">
+            <div class="field">
+                <label>设备组</label>
+                <select class="ui selection dropdown js-group-list js-change-event" id="js-group-list" >
+                    <option value="">选择设备组</option>
+                    <option value="-1" selected>全部</option>
+                    <option value="1">第一设备组</option>
+                    <option value="2">第二设备组</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>设备名</label>
+                <select class="ui selection dropdown js-device-list js-change-event" disabled id="js-device-list">
+                    <option value="">选择设备名</option>
+                    <option value="-1" selected>全部</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>错误类型</label>
+                <select class="ui selection dropdown js-error-type-list js-change-event" id="js-error-type-list">
+                    <option value="">选择错误类型</option>
+                    <option value="-1" selected>全部</option>
+                    <option value="1">失去连接</option>
+                    <option value="2">连接异常</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>时间</label>
+                <select class="ui selection dropdown js-time-list js-change-event">
+                    <option value="">选择时间</option>
+                    <option value="-1" selected>全部</option>
+                    <option value="1">一天内</option>
+                    <option value="7">一周内</option>
+                    <option value="365">一月内</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>显示方式</label>
+                <select class="ui selection dropdown js-show-type-list js-change-event">
+                    <option value="">显示方式</option>
+                    <option value="1" selected>列表</option>
+                    <option value="2">图表</option>
+                </select>
+            </div>
+
+        </div>
+    </div>
+
+    <table class="ui center aligned red table celled" id="js-container">
+        <thead>
+        <tr>
+            <th width="10%">序号</th>
+            <th width="10%">组号</th>
+            <th width="10%">组名</th>
+            <th width="10%">设备号</th>
+            <th width="15%">设备名称</th>
+            <th width="20%">发生时间</th>
+            <th width="10%">错误原因</th>
+            <th width="15%">持续时间</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>1</td>
+            <td>000000</td>
+            <td>第一设备组</td>
+            <td>20160001112</td>
+            <td>邮件服务器</td>
+            <td>2016.12.1 20:10</td>
+            <td>连接失败</td>
+            <td>20 分钟</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>000000</td>
+            <td>第一设备组</td>
+            <td>20160001112</td>
+            <td>邮件服务器</td>
+            <td>2016.12.1 20:10</td>
+            <td>缓存过大</td>
+            <td>MAX</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<table id="js-template" style="display: none;">
+    <tr>
+        <td class="js-number">1</td>
+        <td class="js-group-id">000000</td>
+        <td class="js-group-name">第一设备组</td>
+        <td class="js-device-id">20160001112</td>
+        <td class="js-device-name">邮件服务器</td>
+        <td class="js-start-time">2016.12.1 20:10</td>
+        <td class="js-error-msg">连接失败</td>
+        <td class="js-last">20 分钟</td>
+    </tr>
+</table>
+
+<!--<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>-->
+<script src="jquery-3.1.0.min.js"></script>
+<script src="http://cdn.bootcss.com/semantic-ui/2.2.6/semantic.min.js"></script>
+<script src="api_ajax.js"></script>
+<script>
+    $(function(){
+        $('.dropdown').dropdown();
+
+        $.get({
+            url : API_GET_GROUP_LIST,
+            success : function(response){
+                refreshGroupList(response);
+            }
+        });
+
+        $.get({
+            url : API_GET_ERROR_TYPE_LIST,
+            success : function(response){
+                // TODO: 显示错误类型列表
+                refreshErrorTypeList(response);
+            }
+        });
+
+        getList();
+
+        window.setInterval(getList, REFRESH_FREQUENCE);
+
+        $('.js-change-event').change(function(){
+            getList();
+        });
+
+        $('.js-group-list').change(function(){
+            var groupId = $(this).dropdown('get value');
+            if(groupId === '-1'){
+                $('.js-device-list').addClass('disabled');
+            }else{
+                $('.js-device-list').removeClass('disabled');
+                $.get({
+                    url : API_GET_DEVICE_LIST,
+                    data : {
+                        "group_id" : groupId,
+                    },
+                    success : function(response){
+                        //TODO: 显示设备名
+                        refreshDeviceList(response);
+                    }
+                })
+            }
+        });
+
+        function getList(){
+            var groupId = $('.js-group-list').dropdown('get value');
+            var deviceId = $('.js-device-list').dropdown('get value');
+            var errorType = $('.js-error-type-list').dropdown('get value');
+            var days = $('.js-time-list').dropdown('get value');
+            var showType = $('.js-show-type-list').dropdown('get value');
+            var data = {};
+            if(groupId !== "-1"){
+                data['group_id'] = groupId;
+            }
+            if(deviceId !== "-1" && !$('#js-device-list').hasClass('disabled')){
+                data['device_id'] = deviceId;
+            }
+            if(errorType !== "-1"){
+                data['error_type'] = errorType;
+            }
+            if(days !== "-1"){
+                data['days'] = days;
+            }
+            console.log(data);
+            $.get({
+                url : API_GET_ERROR_LIST,
+                data : data,
+                success : function(response){
+                    console.log(response);
+                    // TODO: 显示错误列表
+                    refreshItem(response);
+                }
+            });
+        }
+
+        // TODO: refresh error history list according to data received from java web server
+        function refreshItem(data) {
+
+            // TODO: 清空表格内容
+            var $container = $('#js-container');
+            $container.find('tbody').children('tr').remove();
+
+            var number = 1;
+
+            for(var index in data) {
+                var $item = $('#js-template').find('tr').clone();
+                $item.find('.js-number').text(number);
+                $item.find('.js-group-id').text(data[index]['group_id']);
+                $item.find('.js-group-name').text(data[index]['group_name']);
+                $item.find('.js-device-id').text(data[index]['device_id']);
+                $item.find('.js-device-name').text(data[index]['device_name']);
+                $item.find('.js-start-time').text(data[index]['start']);
+                $item.find('.js-error-msg').text(data[index]['error_msg']);
+                $item.find('.js-last').text(data[index]['last']['seconds']);
+                $('#js-container').append($item);
+                number++;
+            }
+        }
+
+    })
+</script>
+</body>
+</html>

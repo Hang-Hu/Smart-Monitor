@@ -1,0 +1,58 @@
+<html>
+<head>
+    <title>Login</title>
+    <link href="//cdn.bootcss.com/semantic-ui/2.2.6/semantic.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="ui container" style="margin-top: 2em;">
+    <div class="ui grid">
+        <div class="four wide column"></div>
+        <div class="eight wide column">
+            <div class="ui form">
+                <div class="ui fields">
+                    <input type="text" name="username" placeholder="用户名">
+                </div>
+                <div class="ui fields">
+                    <input type="password" name="password" placeholder="密码">
+                </div>
+                <div class="ui fields" style="float: right;">
+                    <input class="ui button basic blue"  type="submit" value="提交">
+                    <input class="ui button basic red"  type="reset" value="重置">
+                </div>
+            </div>
+            <button class="ui button basic teal" id="ajax_submit">Ajax 提交</button>
+        </div>
+    </div>
+</div>
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/semantic-ui/2.2.6/semantic.min.js"></script>
+<script src="api_ajax.js"></script>
+<script>
+    $('#ajax_submit').api({
+        url: API_LOGIN,
+        method : "POST",
+        data : {},
+        beforeSend: function(settings){
+            var data = {
+                "username" : $('input[name=username]').val(),
+                "password" : $('input[name=password]').val(),
+            };
+            console.log(data);
+            settings.data = data;
+            return settings;
+        },
+        onSuccess: function (response) {
+            if(response.success == true){
+                alert("登录成功");
+                location.href = "overview.html";
+            }else{
+                alert("登录失败, 请重新输入密码");
+                $('input[name=password]').focus();
+            }
+            console.log(response);
+        }
+    });
+</script>
+</body>
+</html>

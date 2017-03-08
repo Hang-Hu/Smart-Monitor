@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WATCHER - DEIT</title>
+    <link href="http://cdn.bootcss.com/semantic-ui/2.2.6/semantic.min.css" rel="stylesheet">
+</head>
+<body style="overflow:hidden;">
+<div class="ui container">
+
+    <h4 class="ui horizontal divider header" style="text-transform: none; margin-top: 1.5rem; margin-bottom: 1.5rem;"> 修改设备名 </h4>
+
+    <table class="ui form center aligned blue table celled" id="js-container-device">
+        <thead>
+        <tr>
+            <th width="10%">序号</th>
+            <th width="25%">组号</th>
+            <th width="25%">设备号</th>
+            <th width="25%">设备名</th>
+            <th width="15%">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>1</td>
+            <td>000000</td>
+            <td>20160001112</td>
+            <td>
+                <input class="js-device-name" value="邮件服务器">
+            </td>
+            <td>
+                <button class="ui button basic blue fluid js-device-save">保存</button>
+            </td>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>000000</td>
+            <td>20160001112</td>
+            <td>
+                <input class="js-device-name" value="邮件服务器">
+            </td>
+            <td>
+                <button class="ui button basic blue fluid js-device-save">保存</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h4 class="ui horizontal divider header" style="text-transform: none; margin-top: 1.5rem; margin-bottom: 1.5rem;"> 修改分组名 </h4>
+    <table class="ui form center aligned blue table celled" id="js-container-group">
+        <thead>
+        <tr>
+            <th width="15%">序号</th>
+            <th width="35%">组号</th>
+            <th width="35%">组名</th>
+            <th width="15%">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>1</td>
+            <td>000000</td>
+            <td>
+                <input class="js-device-name" value="第一设备组">
+            </td>
+            <td>
+                <button class="ui button basic blue fluid js-device-save">保存</button>
+            </td>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>000000</td>
+            <td>
+                <input class="js-device-name" value="第一设备组">
+            </td>
+            <td>
+                <button class="ui button basic blue fluid js-device-save">保存</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<table id="js-template-device" style="display: none;">
+    <tr>
+        <td class="js-number">1</td>
+        <td class="js-group-id"></td>
+        <td class="js-device-id"></td>
+        <td>
+            <input class="js-device-name" value="邮件服务器">
+        </td>
+        <td>
+            <button class="ui button basic blue fluid js-device-save">保存</button>
+        </td>
+    </tr>
+</table>
+
+<table id="js-template-group" style="display: none;">
+    <tr>
+        <td class="js-number">1</td>
+        <td class="js-group-id"></td>
+        <td>
+            <input class="js-group-name" value="第一设备组">
+        </td>
+        <td>
+            <button class="ui button basic blue fluid js-group-save">保存</button>
+        </td>
+    </tr>
+</table>
+
+<!--<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>-->
+<script src="jquery-3.1.0.min.js"></script>
+<script src="http://cdn.bootcss.com/semantic-ui/2.2.6/semantic.min.js"></script>
+<script src="api_ajax.js"></script>
+<script>
+    $(function(){
+        $('.dropdown').dropdown();
+
+        $('.js-device-save').click(function(){
+            var data = {
+                "device_id" : $(this).closest('tr').find('.js-device-id').html(),
+                "group_id" : $(this).closest('tr').find('.js-group-id').html(),
+                "name" : $(this).closest('tr').find('.js-device-name').val(),
+            };
+            $.post({
+                url : API_POST_DEVICE_LIST,
+                data : data,
+                success : function(response){
+                    console.log(response);
+                    if(response.success){
+                        alert('修改成功');
+                        location.reload(true);
+                    }else{
+                        alert('修改失败');
+                    }
+                }
+            });
+        });
+
+//        $('.js-device-save').api({
+//            url: API_POST_DEVICE_LIST,
+//            method : "POST",
+//            data : {},
+//            beforeSend: function(settings){
+//                console.log($(this).closest('tr').find('.js-number').html());
+//                var data = {
+//                    "device_id" : $(this).closest('tr').find('.js-device-id').html(),
+//                    "group_id" : $(this).closest('tr').find('.js-group-id').html(),
+//                    "name" : $(this).closest('tr').find('.js-device-name').val(),
+//                };
+//                console.log(data);
+//                settings.data = data;
+//                return settings;
+//            },
+//            onSuccess: function (response) {
+//                if(response.success == true){
+//                    alert("修改成功");
+//                    location.reload(true);
+//                }else{
+//                    alert("修改失败");
+//                }
+//                console.log(response);
+//            }
+//        });
+
+        $('.js-group-save').click(function(){
+            var data = {
+                "group_id" : $(this).closest('tr').find('.js-group-id').text(),
+                "name" : $(this).closest('tr').find('.js-group-name').val(),
+            };
+            $.post({
+                url : API_POST_GROUP_LIST,
+                data :data,
+                success : function(response){
+                    console.log(response);
+                    if(response.success){
+                        alert('修改成功');
+                        location.reload(true);
+                    }else{
+                        alert('修改失败');
+                    }
+                }
+            });
+        });
+
+//        $('.js-group-save').api({
+//            url: API_POST_GROUP_LIST,
+//            method : "POST",
+//            data : {},
+//            beforeSend: function(settings){
+//                var data = {
+//                    "group_id" : $(this).closest('tr').find('.js-group-id').text(),
+//                    "name" : $(this).closest('tr').find('.js-group-name').val(),
+//                };
+//                console.log(data);
+//                settings.data = data;
+//                return settings;
+//            },
+//            onSuccess: function (response) {
+//                if(response.success == true){
+//                    alert("修改成功");
+//                    location.reload(true);
+//                }else{
+//                    alert("修改失败");
+//                }
+//                console.log(response);
+//            }
+//        });
+
+        $.get({
+            url : API_GET_GROUP_LIST,
+            success : function(response){
+                // TODO: 显示列表
+                refreshGroupTable(response);
+            }
+        });
+
+        $.get({
+            url : API_GET_DEVICE_LIST_WITH_PARAMS,
+            success : function(response){
+                console.log(response);
+                // TODO: 显示列表
+                refreshDeviceTable(response);
+            },
+        });
+
+        // TODO: refresh real-time status list according to data received from java web server
+        function refreshDeviceTable(data) {
+
+            // TODO: 清空表格内容
+            var $container = $('#js-container-device');
+            $container.find('tbody').children('tr').remove();
+
+            var number = 1;
+
+            for(var index in data){
+                var $item = $('#js-template-device').find('tr').clone(true);
+                $item.find('.js-number').text(number);
+                $item.find('.js-group-id').text(data[index]['groupId']);
+                $item.find('.js-device-id').text(data[index]['id']);
+                $item.find('.js-device-name').val(data[index]['name']);
+                $('#js-container-device').append($item);
+                number++;
+            }
+        }
+
+        // TODO: refresh real-time status list according to data received from java web server
+        function refreshGroupTable(data) {
+
+            // TODO: 清空表格内容
+            var $container = $('#js-container-group');
+            $container.find('tbody').children('tr').remove();
+
+            var number = 1;
+
+            for(var index in data){
+                var $item = $('#js-template-group').find('tr').clone(true);
+                $item.find('.js-number').text(number);
+                $item.find('.js-group-id').text(data[index]['id']);
+                $item.find('.js-group-name').val(data[index]['name']);
+                $('#js-container-group').append($item);
+                number++;
+            }
+        }
+
+
+    })
+</script>
+</body>
+</html>
